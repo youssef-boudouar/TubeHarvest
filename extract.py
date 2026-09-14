@@ -35,4 +35,28 @@ while(True):
     if next_page is None:
         break
 
-print(len(video_ids))
+# print(len(video_ids))
+
+all_vids = []
+
+for i in range(0, len(video_ids), 50):
+    ids = ",".join(video_ids[i:i+50])
+
+    video_url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id={ids}&key={API_KEY}"
+
+    response = requests.get(video_url)
+    video_data = response.json()
+    for item in video_data['items']:
+        video = {
+            "video_id": item['id'],
+            "title": item['snippet']['title'],
+            "published_at" : item['snippet']['publishedAt'],
+            "duration": item["contentDetails"]["duration"],
+            "views": item["statistics"].get("viewCount", 0),
+            "likes": item["statistics"].get("likeCount", 0),
+            "comments": item["statistics"].get("commentCount", 0)
+        }
+        all_vids.append(video)
+
+print(all_vids[0])
+print(len(all_vids))
