@@ -1,6 +1,8 @@
 import requests
 import os 
 from dotenv import load_dotenv
+import json
+from datetime import datetime
 
 
 load_dotenv()
@@ -58,5 +60,13 @@ for i in range(0, len(video_ids), 50):
         }
         all_vids.append(video)
 
-print(all_vids[0])
-print(len(all_vids))
+# print(all_vids[0])
+# print(len(all_vids))
+
+today = datetime.now().strftime("%Y-%m-%d")
+
+# print(today)
+
+with open(f"data/YTdata{today}.json", "w") as f:
+    json.dump(all_vids, f, indent=2)
+
