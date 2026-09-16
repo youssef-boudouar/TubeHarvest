@@ -19,6 +19,10 @@ cursor = con.cursor()
 cursor.execute("SELECT video_id, title, published_at, duration, views, likes, comments FROM staging.videos")
 rows = cursor.fetchall()
 
+cursor.execute( """DELETE FROM core.videos 
+    WHERE video_id NOT IN (SELECT video_id FROM staging.videos)""")
+
+
 for row in rows:
     video_id = row[0]
     title = row[1]
@@ -29,21 +33,23 @@ for row in rows:
     comments = int(row[6])
     likes_per_views = likes / views if views > 0 else 0
     comments_per_views = comments / views if views > 0 else 0
-    cursor.execute("INSERT INTO core.videos (video_id, title, published_at, duration_seconds, views, likes, comments, likes_per_view, comments_per_view) VALUES(%s, %s,%s,%s, %s,%s, %s,%s, %s)",
-            (
-                video_id,
-                title,
-                published_at,
-                duration,
-                views,
-                likes,
-                comments,
-                likes_per_views,
-                comments_per_views
-
-            )
-        )
+    cursor.execute("""
+    INSERT INTO core.videos (video_id, title, published_at, duration_seconds, views, likes, comments, likes_per_view, comments_per_view)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ON CONFLICT (video_id) DO UPDATE SET
+        title = EXCLUDED.title,
+        published_at = EXCLUDED.published_at,
+        duration_seconds = EXCLUDED.duration_seconds,
+        views = EXCLUDED.views,
+        likes = EXCLUDED.likes,
+        comments = EXCLUDED.comments,
+        likes_per_view = EXCLUDED.likes_per_view,
+        comments_per_view = EXCLUDED.comments_per_view,
+        updated_at = CURRENT_TIMESTAMP
+    """, (
+        video_id, title, published_at, duration, views, likes, comments, likes_per_views, comments_per_views
+    ))
 
 con.commit()
-con.close()
+con.close() 
 
