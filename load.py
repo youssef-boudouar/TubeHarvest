@@ -11,7 +11,6 @@ con = psycopg2.connect(host="localhost", database="tubeharvest", user="youssef",
 
 cursor = con.cursor() # create a cursor which sends sql commands and receive result back 
 
-cursor.execute("DELETE FROM staging.videos")
 
 for v in content:
 
@@ -33,6 +32,13 @@ for v in content:
             v["comments"]
         )
     )
+
+vid_ids = []
+
+for v in content:
+    vid_ids.append(v['video_id'])
+
+cursor.execute("DELETE FROM staging.videos WHERE video_id NOT IN %s", (tuple(vid_ids),))
 
 con.commit()
 con.close()
